@@ -21,8 +21,8 @@ jobs:
         run: dotnet publish BlazorApp/BlazorApp.csproj -c Release -o release --nologo
 
       # changes the base-tag in index.html from '/' to 'BlazorApp' to match GitHub Pages repository subdirectory
-      - name: Change base-tag in index.html from / to BlazorApp
-        run: sed -i 's/<base href="\/" \/>/<base href="\/BlazorApp\/" \/>/g' release/wwwroot/index.html
+      - name: Change base-tag in index.html from / to blazor-app
+        run: sed -i 's/<base href="\/" \/>/<base href="\/blazor-app\/" \/>/g' release/wwwroot/index.html
 
       # copy index.html to 404.html to serve the same file when a file is not found
       - name: copy index.html to 404.html
@@ -40,6 +40,3 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: release/wwwroot # The folder the action should deploy.
 
-      # changes the base-tag in index.html from '/' to 'blazor-app' to match GitHub Pages repository subdirectory
-      - name: Change base-tag in index.html from / to blazor-app
-        run: sed -i 's/<base href="\/" \/>/<base href="\/blazor-app\/" \/>/g' release/wwwroot/index.html
