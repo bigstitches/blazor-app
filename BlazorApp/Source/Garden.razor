@@ -1,0 +1,41 @@
+﻿@page "/garden"
+@using Microsoft.JSInterop
+
+<h3>HTML Canvas in Blazor</h3>
+
+@* <canvas id="myCanvas" width="500" height="400" style="border:1px solid #000000;" @onmouseover="GetCoordinates"></canvas> *@
+<canvas id="myCanvas" width="500" height="400" style="border:1px solid #000000;" @onmousemove="UpdateMouseCoordinates"></canvas>
+
+<button @onclick="DrawOnCanvas">Draw</button>
+<button @onclick="EraseOnCanvas">Erase</button>
+<p>Mouse Location: @MouseX, @MouseY</p>
+
+@code {
+    [Inject] IJSRuntime JS { get; set; }
+    private double MouseX { get; set; }
+    private double MouseY { get; set; }
+
+    private async Task DrawOnCanvas()
+    {
+        await JS.InvokeVoidAsync("drawOnCanvas");
+    }
+
+    private async Task EraseOnCanvas()
+    {
+        await JS.InvokeVoidAsync("eraseOnCanvas");
+    }
+
+    private void GetCoordinates(MouseEventArgs e)
+    {
+        MouseX = e.OffsetX;
+        MouseY = e.OffsetY;
+    }
+
+    private void UpdateMouseCoordinates(MouseEventArgs e)
+    {
+        MouseX = e.OffsetX;
+        MouseY = e.OffsetY;
+
+        StateHasChanged();
+    }
+}

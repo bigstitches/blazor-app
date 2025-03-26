@@ -1,0 +1,141 @@
+﻿@page "/snake"
+@inject HttpClient Http
+
+<style>
+    #grid {
+        position: relative;
+        width: 400px;
+        height: 400px;
+        border: 1px solid black;
+        display: grid;
+        grid-template-rows: repeat(10, 1fr);
+        grid-template-columns: repeat(10, 1fr);
+        background-color: #f0f0f0;
+    }
+
+    .dot {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .red-dot {
+        background-color: red;
+    }
+
+    .green-dot {
+        background-color: green;
+    }
+</style>
+
+<PageTitle>Snake Game</PageTitle>
+
+
+<div id="grid" tabindex="0" @onkeydown="HandleKeyPress" @ref="gridRef">
+    <div class="dot red-dot" style="top:@dotYpx; left:@dotXpx;"></div>
+    <div class="dot green-dot" style="top:@greenDotYpx; left:@greenDotXpx;"></div>
+</div>
+<p>Current Score: @score</p>
+
+@code
+{
+    private ElementReference gridRef;
+    private int score = 0;
+
+    private double dotX = 0;       // Red dot X coordinate
+    private double dotY = 0;       // Red dot Y coordinate
+    private double greenDotX = 0;  // Green dot X coordinate
+    private double greenDotY = 0;  // Green dot Y coordinate
+
+    private const double Step = 10;
+    private const double GridSize = 400; // Grid width and height in pixels
+
+    private string dotXpx => $"{dotX}px";
+    private string dotYpx => $"{dotY}px";
+
+    private string greenDotXpx => $"{greenDotX}px";
+    private string greenDotYpx => $"{greenDotY}px";
+
+    private string currentDirection = null;
+    private Timer? movementTimer;
+    private Random random = new Random();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await gridRef.FocusAsync();
+            RespawnGreenDot();
+
+            // Start the timer for continuous movement
+            movementTimer = new Timer(MoveDot, null, 0, 100); // Moves every 100ms
+        }
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "ArrowUp":
+                currentDirection = "up";
+                break;
+            case "ArrowDown":
+                currentDirection = "down";
+                break;
+            case "ArrowLeft":
+                currentDirection = "left";
+                break;
+            case "ArrowRight":
+                currentDirection = "right";
+                break;
+        }
+    }
+
+    private void MoveDot(object? state)
+    {
+        if (currentDirection == null) return;
+
+        InvokeAsync(() =>
+        {
+            // Move the red dot based on the current direction
+            switch (currentDirection)
+            {
+                case "up":
+                    dotY = (dotY - Step + GridSize) % GridSize;
+                    break;
+                case "down":
+                    dotY = (dotY + Step) % GridSize;
+                    break;
+                case "left":
+                    dotX = (dotX - Step + GridSize) % GridSize;
+                    break;
+                case "right":
+                    dotX = (dotX + Step) % GridSize;
+                    break;
+            }
+
+            // Check for collision between red dot and green dot
+            if (Math.Abs(dotX - greenDotX) < Step && Math.Abs(dotY - greenDotY) < Step)
+            {
+                score++;
+                RespawnGreenDot();
+            }
+
+            StateHasChanged(); // Update the UI
+        });
+    }
+
+    private void RespawnGreenDot()
+    {
+        greenDotX = random.Next(0, (int)(GridSize / Step)) * Step;
+        greenDotY = random.Next(0, (int)(GridSize / Step)) * Step;
+    }
+
+    public void Dispose()
+    {
+        movementTimer?.Dispose(); // Stop the timer when the component is disposed
+    }
+}
