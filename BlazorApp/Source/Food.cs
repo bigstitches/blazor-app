@@ -1,4 +1,6 @@
-﻿namespace BlazorApp.Source
+﻿using System.ComponentModel;
+
+namespace BlazorApp.Source
 {
     public class Food
     {
@@ -14,5 +16,7 @@
             this.position = position;
             return true;
         }
+
+        
     }
 }

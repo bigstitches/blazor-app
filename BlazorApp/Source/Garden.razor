@@ -1,12 +1,10 @@
 ﻿@page "/garden"
 @using Microsoft.JSInterop
+@inject HttpClient Http
 
 <h3>HTML Canvas in Blazor</h3>
+<canvas id="myCanvas" width="500" height="400" style="border:1px solid #000000;" @onmousemove="DrawLine" @onmousedown="StartDrawing" @onmouseup="StopDrawing"></canvas>
 
-@* <canvas id="myCanvas" width="500" height="400" style="border:1px solid #000000;" @onmouseover="GetCoordinates"></canvas> *@
-<canvas id="myCanvas" width="500" height="400" style="border:1px solid #000000;" @onmousemove="UpdateMouseCoordinates"></canvas>
-
-<button @onclick="DrawOnCanvas">Draw</button>
 <button @onclick="EraseOnCanvas">Erase</button>
 <p>Mouse Location: @MouseX, @MouseY</p>
 
@@ -14,10 +12,20 @@
     [Inject] IJSRuntime JS { get; set; }
     private double MouseX { get; set; }
     private double MouseY { get; set; }
-
-    private async Task DrawOnCanvas()
+    private string penColor { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("drawOnCanvas");
+        if (firstRender)
+        {
+            // Initialize JavaScript for the canvas
+            await JS.InvokeVoidAsync("initializeCanvas");
+        }
+    }
+
+    private async Task StartDrawing(MouseEventArgs e)
+    {
+        await JS.InvokeVoidAsync("startDrawing", e.OffsetX, e.OffsetY);
     }
 
     private async Task EraseOnCanvas()
@@ -25,16 +33,22 @@
         await JS.InvokeVoidAsync("eraseOnCanvas");
     }
 
-    private void GetCoordinates(MouseEventArgs e)
+    private async Task StopDrawing()
     {
-        MouseX = e.OffsetX;
-        MouseY = e.OffsetY;
+        await JS.InvokeVoidAsync("stopDrawing");
     }
 
-    private void UpdateMouseCoordinates(MouseEventArgs e)
+    private void SetPen(string color)
+    {
+        penColor = color;
+    }
+
+    private async Task DrawLine(MouseEventArgs e)
     {
         MouseX = e.OffsetX;
         MouseY = e.OffsetY;
+
+        await JS.InvokeVoidAsync("drawContinuousLine", "black", e.OffsetX, e.OffsetY);
 
         StateHasChanged();
     }
